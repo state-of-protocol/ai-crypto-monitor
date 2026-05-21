@@ -1,8 +1,10 @@
 # Crypto Monitor
 
-Real-time cryptocurrency monitoring dashboard powered by the CoinCap API. No AI features or API keys required.
+Real-time cryptocurrency monitoring dashboard powered by the CoinCap API. No API keys required.
 
-**Tech stack**: React 19 + TypeScript + Vite 6 + TailwindCSS 4 (frontend) · Express + CoinCap API (backend) · Vercel (deployment) · PWA (offline-capable)
+**Live demo**: https://state-of-protocol.github.io/ai-crypto-monitor/
+
+**Tech stack**: React 19 + TypeScript + Vite 6 + TailwindCSS 4 (frontend) · CoinCap API (data) · GitHub Pages (deployment) · PWA (offline-capable)
 
 ---
 
@@ -15,6 +17,7 @@ Real-time cryptocurrency monitoring dashboard powered by the CoinCap API. No AI 
 - Drag-and-drop dashboard widgets
 - 3 themes (Dark / Light / Beige) + custom accent color
 - Multi-language (Malay / English / Chinese)
+- Installable PWA with offline support
 
 ---
 
@@ -29,13 +32,7 @@ npm run dev
 
 Open **http://localhost:3000**.
 
----
-
-## Deploy to Vercel
-
-1. Push this repo to GitHub
-2. Import at [vercel.com/new](https://vercel.com/new)
-3. Deploy — Vercel auto-detects `vercel.json`
+No API keys or configuration required.
 
 ---
 
@@ -43,16 +40,10 @@ Open **http://localhost:3000**.
 
 | Command | Description |
 |---|---|
-| `npm run dev` | Start local dev server (Express + Vite HMR) |
-| `npm run build` | Build frontend for production (Vite) |
+| `npm run dev` | Start Vite dev server on port 3000 |
+| `npm run build` | Build frontend for production |
 | `npm run lint` | Type-check with TypeScript |
 | `npm run clean` | Remove `dist/` artifacts |
+| `npm run deploy` | Build & deploy to GitHub Pages |
 
----
 
-## API Endpoints
-
-| Method | Path | Description |
-|---|---|---|
-| GET | `/api/crypto/markets` | Top 100 cryptocurrencies |
-| GET | `/api/crypto/history/:id` | Historical daily prices |

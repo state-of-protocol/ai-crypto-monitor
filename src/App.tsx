@@ -5,6 +5,7 @@ import MarketStats from "./components/MarketStats";
 import LiveCoinsTable from "./components/LiveCoinsTable";
 import FinancialChart from "./components/FinancialChart";
 import WatchlistAlerts from "./components/WatchlistAlerts";
+import { fetchMarkets, fetchHistory } from "./utils/coincap";
 import { BarChart3, Bell, GripVertical, Plus, Trash2, Settings2, X, RotateCcw, LayoutGrid, Settings } from "lucide-react";
 
 export interface DashboardWidget {
@@ -219,37 +220,18 @@ export default function App() {
     }
   };
 
-  // Convert/Fetch currencies rates from local API or default
-  const fetchMyrConversionFactor = async () => {
-    try {
-      const res = await fetch("/api/rates");
-      if (res.ok) {
-        const data = await res.json();
-        // Look for any return having MYR conversions
-        if (data.bitcoin && data.bitcoin.myr && data.bitcoin.usd) {
-          const calculatedRate = data.bitcoin.myr / data.bitcoin.usd;
-          setRateMyr(calculatedRate || CONVERSION_RATE_MYR);
-        }
-      }
-    } catch (err) {
-      console.warn("Error fetching rates, utilizing static conversion band", err);
-    }
-  };
-
   // Core markets tracking fetching loop
   const fetchMarketAssets = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
     setApiConnected(true);
     
     try {
-      const res = await fetch("/api/crypto/markets");
-      if (!res.ok) throw new Error("Backend query failed");
-      const list: CoinData[] = await res.json();
+      const list = await fetchMarkets();
       setCoins(list);
       setLoadingCoins(false);
       setMarketFreshness("Synced Just Now");
     } catch (error) {
-      console.error("Failed to sync fresh markets, running warning protocols", error);
+      console.error("Failed to sync fresh markets", error);
       setApiConnected(false);
       setMarketFreshness("Offline Fallback");
       setLoadingCoins(false);
@@ -262,9 +244,7 @@ export default function App() {
   const fetchPrioritizedAssetHistory = useCallback(async (coinId: string) => {
     setLoadingHistory(true);
     try {
-      const res = await fetch(`/api/crypto/history/${coinId}`);
-      if (!res.ok) throw new Error("History fetch error");
-      const historyPoints: CoinHistoryPoint[] = await res.json();
+      const historyPoints = await fetchHistory(coinId);
       setCoinHistory(historyPoints);
     } catch (error) {
       console.error(`Historical curves syncing failed for ${coinId}`, error);
@@ -276,7 +256,6 @@ export default function App() {
   // Initialize data loaders
   useEffect(() => {
     fetchMarketAssets();
-    fetchMyrConversionFactor();
     
     const interval = setInterval(() => {
       fetchMarketAssets();
@@ -334,9 +313,7 @@ export default function App() {
         const results = await Promise.all(
           missingIds.map(async (id) => {
             try {
-              const res = await fetch(`/api/crypto/history/${id}`);
-              if (!res.ok) return { id, data: [] };
-              const data = await res.json();
+              const data = await fetchHistory(id);
               return { id, data };
             } catch (err) {
               console.warn(`Failed history sync for ${id}`, err);
