@@ -1,14 +1,16 @@
 export interface CoinData {
-  id: string; // e.g., 'bitcoin'
-  symbol: string; // e.g., 'btc'
-  name: string; // e.g., 'Bitcoin'
+  id: string;
+  symbol: string;
+  name: string;
   priceUsd: number;
   changePercent24h: number;
+  changePercent1h?: number;
+  changePercent7d?: number;
   marketCapUsd: number;
   volumeUsd24h: number;
   supply: number;
   maxSupply: number | null;
-  history7d: number[]; // Sparkline elements
+  history7d: number[];
   rank: number;
 }
 

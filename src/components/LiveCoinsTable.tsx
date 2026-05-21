@@ -28,7 +28,7 @@ export default function LiveCoinsTable({
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState<"all" | "altcoins" | "watchlist">("all");
 
-  type SortField = "rank" | "name" | "price" | "change" | "marketCap" | "volume" | "supply";
+  type SortField = "rank" | "name" | "price" | "change1h" | "change24h" | "change7d" | "marketCap" | "volume" | "supply";
   const [sortField, setSortField] = useState<SortField>("rank");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
@@ -161,9 +161,17 @@ export default function LiveCoinsTable({
           valA = a.priceUsd;
           valB = b.priceUsd;
           break;
-        case "change":
+        case "change1h":
+          valA = a.changePercent1h ?? 0;
+          valB = b.changePercent1h ?? 0;
+          break;
+        case "change24h":
           valA = a.changePercent24h;
           valB = b.changePercent24h;
+          break;
+        case "change7d":
+          valA = a.changePercent7d ?? 0;
+          valB = b.changePercent7d ?? 0;
           break;
         case "marketCap":
           valA = a.marketCapUsd;
@@ -258,7 +266,9 @@ export default function LiveCoinsTable({
               {renderSortHeader("#", "rank", "center", "font-mono w-12")}
               {renderSortHeader("Token", "name", "left")}
               {renderSortHeader("Price", "price", "right")}
-              {renderSortHeader("24h Change", "change", "center", "w-28")}
+              {renderSortHeader("1h %", "change1h", "center", "w-20")}
+              {renderSortHeader("24h %", "change24h", "center", "w-20")}
+              {renderSortHeader("7d %", "change7d", "center", "hidden sm:table-cell w-20")}
               {renderSortHeader("Market Cap", "marketCap", "right", "hidden md:table-cell")}
               {renderSortHeader("Volume (24h)", "volume", "right", "hidden lg:table-cell")}
               {renderSortHeader("Circulating Supply", "supply", "right", "hidden xl:table-cell")}
@@ -269,14 +279,26 @@ export default function LiveCoinsTable({
           <tbody className="divide-y divide-zinc-900/50 text-[13px]">
             {sortedCoins.length === 0 ? (
               <tr>
-                <td colSpan={9} className="text-center py-12 text-zinc-500 font-mono">
+                <td colSpan={11} className="text-center py-12 text-zinc-500 font-mono">
                   No matching cryptocurrencies found.
                 </td>
               </tr>
             ) : (
               sortedCoins.map((coin) => {
                 const isSelected = selectedCoinId === coin.id;
-                const changeIsPositive = coin.changePercent24h >= 0;
+
+                const changeBadge = (val: number | undefined) => {
+                  const pos = (val ?? 0) >= 0;
+                  return (
+                    <span className={`inline-flex items-center gap-1 text-[11px] font-semibold font-mono px-1.5 py-0.5 rounded-md border ${
+                      pos
+                        ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/15"
+                        : "text-rose-400 bg-rose-500/10 border-rose-500/15"
+                    }`}>
+                      {pos ? "+" : ""}{val?.toFixed(2) ?? "0.00"}%
+                    </span>
+                  );
+                };
 
                 return (
                   <tr
@@ -332,16 +354,17 @@ export default function LiveCoinsTable({
                     </td>
                     <td className="py-3.5 px-4">
                       <div className="flex justify-center">
-                        <span
-                          className={`inline-flex items-center gap-1 text-[11px] font-semibold font-mono px-2 py-0.5 rounded-md border ${
-                            changeIsPositive
-                              ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/15"
-                              : "text-rose-400 bg-rose-500/10 border-rose-500/15"
-                          }`}
-                        >
-                          {changeIsPositive ? "+" : ""}
-                          {coin.changePercent24h.toFixed(2)}%
-                        </span>
+                        {changeBadge(coin.changePercent1h)}
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-4">
+                      <div className="flex justify-center">
+                        {changeBadge(coin.changePercent24h)}
+                      </div>
+                    </td>
+                    <td className="py-3.5 px-4 hidden sm:table-cell">
+                      <div className="flex justify-center">
+                        {changeBadge(coin.changePercent7d)}
                       </div>
                     </td>
                     <td className="py-3.5 px-4 text-right hidden md:table-cell text-zinc-300 font-mono text-xs">
@@ -376,7 +399,7 @@ export default function LiveCoinsTable({
                         <button
                           onClick={() => onAddToPortfolio(coin)}
                           className="p-1.5 bg-zinc-900 border border-zinc-800 text-zinc-400 hover:border-emerald-500/30 hover:text-emerald-400 rounded-lg text-xs cursor-pointer transition-all"
-                          title="Add to AI Portfolio Analyzer"
+                          title="Add to Portfolio"
                         >
                           <Plus className="w-3.5 h-3.5" />
                         </button>
