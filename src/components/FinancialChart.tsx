@@ -203,6 +203,15 @@ export default function FinancialChart({
         <div>
           <div className="flex items-center gap-2">
             <LineChart className="w-4 h-4 text-emerald-400 font-bold" />
+            {coinSymbol && (
+              <img
+                src={`https://assets.coincap.io/assets/icons/${coinSymbol.toLowerCase()}@2x.png`}
+                alt={coinSymbol}
+                className="w-5 h-5 object-contain rounded-full"
+                loading="lazy"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+              />
+            )}
             <span className="text-sm font-semibold text-zinc-100 uppercase tracking-tight">
               {coinName} {t.titleSuffix}
             </span>

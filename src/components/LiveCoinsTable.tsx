@@ -301,8 +301,20 @@ export default function LiveCoinsTable({
                         >
                           <Star className={`w-3.5 h-3.5 ${watchlist.includes(coin.id) ? "fill-amber-400" : ""}`} />
                         </button>
-                        <div className="w-7 h-7 rounded-lg bg-zinc-900 flex items-center justify-center border border-zinc-800 text-[11px] font-bold text-emerald-400 font-mono">
-                          {coin.symbol.toUpperCase()}
+                        <div className="w-7 h-7 rounded-lg bg-zinc-900 flex items-center justify-center border border-zinc-800 overflow-hidden shrink-0">
+                          <img
+                            src={`https://assets.coincap.io/assets/icons/${coin.symbol.toLowerCase()}@2x.png`}
+                            alt={coin.symbol}
+                            className="w-6 h-6 object-contain"
+                            loading="lazy"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                              (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                            }}
+                          />
+                          <span className="hidden text-[11px] font-bold text-emerald-400 font-mono">
+                            {coin.symbol.toUpperCase()}
+                          </span>
                         </div>
                         <div>
                           <div className="font-semibold text-zinc-200 leading-snug">{coin.name}</div>
