@@ -1,0 +1,1 @@
+if('serviceWorker' in navigator) navigator.serviceWorker.register('/ai-crypto-monitor/dev-sw.js?dev-sw', { scope: '/ai-crypto-monitor/', type: 'classic' })
