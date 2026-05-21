@@ -1,0 +1,1 @@
+if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/ai-crypto-monitor/sw.js', { scope: '/ai-crypto-monitor/' })})}
