@@ -28,7 +28,7 @@ export default function LiveCoinsTable({
   const [searchTerm, setSearchTerm] = useState("");
   const [activeCategory, setActiveCategory] = useState<"all" | "altcoins" | "watchlist">("all");
 
-  type SortField = "rank" | "name" | "price" | "change" | "marketCap" | "volume";
+  type SortField = "rank" | "name" | "price" | "change" | "marketCap" | "volume" | "supply";
   const [sortField, setSortField] = useState<SortField>("rank");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
@@ -173,6 +173,10 @@ export default function LiveCoinsTable({
           valA = a.volumeUsd24h;
           valB = b.volumeUsd24h;
           break;
+        case "supply":
+          valA = a.supply;
+          valB = b.supply;
+          break;
         default:
           return 0;
       }
@@ -257,14 +261,15 @@ export default function LiveCoinsTable({
               {renderSortHeader("24h Change", "change", "center", "w-28")}
               {renderSortHeader("Market Cap", "marketCap", "right", "hidden md:table-cell")}
               {renderSortHeader("Volume (24h)", "volume", "right", "hidden lg:table-cell")}
-              <th className="py-3 px-4 font-semibold text-center hidden sm:table-cell w-28 font-mono">Sparkline (7d)</th>
+              {renderSortHeader("Circulating Supply", "supply", "right", "hidden xl:table-cell")}
+              <th className="py-3 px-4 font-semibold text-center hidden sm:table-cell w-28 font-mono">Last 7 Days</th>
               <th className="py-3 px-4 font-semibold text-center w-24">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-900/50 text-[13px]">
             {sortedCoins.length === 0 ? (
               <tr>
-                <td colSpan={8} className="text-center py-12 text-zinc-500 font-mono">
+                <td colSpan={9} className="text-center py-12 text-zinc-500 font-mono">
                   No matching cryptocurrencies found.
                 </td>
               </tr>
@@ -344,6 +349,9 @@ export default function LiveCoinsTable({
                     </td>
                     <td className="py-3.5 px-4 text-right hidden lg:table-cell text-zinc-300 font-mono text-xs">
                       {formatLargeAmount(coin.volumeUsd24h)}
+                    </td>
+                    <td className="py-3.5 px-4 text-right hidden xl:table-cell text-zinc-300 font-mono text-xs">
+                      {coin.supply ? `${(coin.supply / 1e6).toFixed(2)}M ${coin.symbol.toUpperCase()}` : "—"}
                     </td>
                     <td className="py-3.5 px-4 hidden sm:table-cell">
                       <div className="flex justify-center">
