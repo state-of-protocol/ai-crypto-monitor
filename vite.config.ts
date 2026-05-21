@@ -6,40 +6,54 @@ import { defineConfig } from 'vite';
 
 export default defineConfig(() => {
   return {
+    base: '/ai-crypto-monitor/',
     plugins: [
       react(),
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['icons/*.svg', 'icons/*.png'],
         manifest: {
-          name: 'AI Crypto Monitor',
-          short_name: 'Crypto AI',
-          description: 'Real-time crypto monitoring with AI-powered insights',
-          theme_color: '#10b981',
+          name: 'Crypto Monitor',
+          short_name: 'CryptoMonitor',
+          description: 'Real-time cryptocurrency price monitor',
+          theme_color: '#09090b',
           background_color: '#09090b',
           display: 'standalone',
-          start_url: '/',
           icons: [
-            { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-            { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
-            { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
-          ],
+            {
+              src: 'icons/icon-192.svg',
+              sizes: '192x192',
+              type: 'image/svg+xml'
+            },
+            {
+              src: 'icons/icon-512.svg',
+              sizes: '512x512',
+              type: 'image/svg+xml'
+            }
+          ]
         },
         workbox: {
           globPatterns: ['**/*.{js,css,html,svg,png,ico,woff2}'],
           runtimeCaching: [
             {
-              urlPattern: /^https:\/\/api\.coincap\.io\/.*/i,
+              urlPattern: /^https:\/\/api\.coincap\.io\/v2\/.*/i,
               handler: 'NetworkFirst',
               options: {
-                cacheName: 'coincap-cache',
-                expiration: { maxEntries: 10, maxAgeSeconds: 300 },
-              },
-            },
-          ],
+                cacheName: 'coincap-api-cache',
+                expiration: {
+                  maxEntries: 50,
+                  maxAgeSeconds: 60 * 60
+                },
+                networkTimeoutSeconds: 5
+              }
+            }
+          ]
         },
-      }),
+        includeAssets: ['offline.html'],
+        devOptions: {
+          enabled: true
+        }
+      })
     ],
     resolve: {
       alias: {

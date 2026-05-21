@@ -1,15 +1,11 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { CoinData, CoinHistoryPoint, ChatMessage, PortfolioItem, AiMarketInsight, AiPortfolioFeedback, PriceAlert } from "./types";
+import { CoinData, CoinHistoryPoint, PortfolioItem, PriceAlert } from "./types";
 import Header from "./components/Header";
 import MarketStats from "./components/MarketStats";
 import LiveCoinsTable from "./components/LiveCoinsTable";
 import FinancialChart from "./components/FinancialChart";
-import AiInsights from "./components/AiInsights";
-import AiChat from "./components/AiChat";
-import PortfolioAnalyzer from "./components/PortfolioAnalyzer";
-import MultiHorizonForecast from "./components/MultiHorizonForecast";
 import WatchlistAlerts from "./components/WatchlistAlerts";
-import { Sparkles, BarChart3, MessageSquare, Wallet, GraduationCap, Bell, GripVertical, Plus, Trash2, Settings2, X, RotateCcw, LayoutGrid, Maximize2, Settings } from "lucide-react";
+import { BarChart3, Bell, GripVertical, Plus, Trash2, Settings2, X, RotateCcw, LayoutGrid, Settings } from "lucide-react";
 
 export interface DashboardWidget {
   id: string;
@@ -24,10 +20,6 @@ const DEFAULT_WIDGETS: DashboardWidget[] = [
   { id: "live-watchlist", title: "Live Watchlist", description: "Real-time crypto asset rates and sparklines", isShown: true, size: "lg" },
   { id: "financial-chart", title: "Technical Charts", description: "Interactive price chart with Bollinger Bands and indicators", isShown: true, size: "md" },
   { id: "watchlist-alerts", title: "Alerts Hub", description: "Custom price alert threshold controller and notifications", isShown: true, size: "md" },
-  { id: "portfolio-analyzer", title: "AI Asset Allocator", description: "Portfolio builder, balances, diagnostics, and AI Audits", isShown: true, size: "lg" },
-  { id: "macro-insights", title: "AI Macro Intelligence", description: "Gemini-compiled macro fundamental models", isShown: true, size: "md" },
-  { id: "multi-horizon-forecast", title: "Strategic Forecasts", description: "Multi-horizon tactical and strategic risk projections", isShown: true, size: "md" },
-  { id: "ai-chat", title: "AI Advisor Chat", description: "Interactive conversational analysis with live market state", isShown: true, size: "md" },
 ];
 
 const LOCAL_STORAGE_PORTFOLIO_KEY = "ai_crypto_portfolio_assets";
@@ -122,18 +114,8 @@ export default function App() {
     }
   };
   
-  // AI Research logs
-  const [aiInsight, setAiInsight] = useState<AiMarketInsight | null>(null);
-  const [loadingInsight, setLoadingInsight] = useState(false);
-  const [insightLanguage, setInsightLanguage] = useState<"MY" | "ENG" | "CN">("MY");
-  
-  // Interactive Chat Advisor state
-  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
-  
   // Portfolio Builder state
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
-  const [auditFeedback, setAuditFeedback] = useState<AiPortfolioFeedback | null>(null);
-  const [auditing, setAuditing] = useState(false);
   const [portfolioHistories, setPortfolioHistories] = useState<{[coinId: string]: CoinHistoryPoint[]}>({});
   const [loadingPortfolioHistory, setLoadingPortfolioHistory] = useState(false);
 
@@ -291,27 +273,6 @@ export default function App() {
     }
   }, []);
 
-  // Generate general market summaries using Gemini
-  const generateMarketInsightsReport = useCallback(async (lang?: "MY" | "ENG" | "CN") => {
-    setLoadingInsight(true);
-    const targetLang = lang || insightLanguage;
-    try {
-      const res = await fetch(`/api/crypto/ai-analysis?lang=${targetLang}`);
-      if (!res.ok) throw new Error("Insights pipeline error");
-      const insightObj: AiMarketInsight = await res.json();
-      setAiInsight(insightObj);
-    } catch (error) {
-      console.error("AI report compilation error", error);
-    } finally {
-      setLoadingInsight(false);
-    }
-  }, [insightLanguage]);
-
-  // Reactive listener to refresh insights whenever the chosen language state evolves
-  useEffect(() => {
-    generateMarketInsightsReport(insightLanguage);
-  }, [insightLanguage, generateMarketInsightsReport]);
-
   // Initialize data loaders
   useEffect(() => {
     fetchMarketAssets();
@@ -335,54 +296,6 @@ export default function App() {
     return coins.find(c => c.id === selectedCoinId) || null;
   }, [coins, selectedCoinId]);
 
-  // Interact with Conversational advisor
-  const handleChatSubmission = async (text: string): Promise<string> => {
-    const userMsg: ChatMessage = {
-      id: `m-u-${Date.now()}`,
-      role: "user",
-      text,
-      timestamp: new Date().toISOString()
-    };
-    
-    const currentHistory = [...chatHistory, userMsg];
-    setChatHistory(currentHistory);
-
-    try {
-      const res = await fetch("/api/crypto/ai-chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: currentHistory,
-          selectedCoinId
-        })
-      });
-
-      if (!res.ok) throw new Error("Chat query failed");
-      const data = await res.json();
-      
-      const responseText = data.reply || "Unable to parse advice.";
-      const modelMsg: ChatMessage = {
-        id: `m-m-${Date.now()}`,
-        role: "model",
-        text: responseText,
-        timestamp: new Date().toISOString()
-      };
-      
-      setChatHistory(prev => [...prev, modelMsg]);
-      return responseText;
-    } catch (err) {
-      console.error("Chat backend run failed", err);
-      const errMsg: ChatMessage = {
-        id: `m-m-err-${Date.now()}`,
-        role: "model",
-        text: "My technical advisors pipeline has encountered minor resistance. Please query again or verify your server settings.",
-        timestamp: new Date().toISOString()
-      };
-      setChatHistory(prev => [...prev, errMsg]);
-      return "";
-    }
-  };
-
   // Portfolio items actions
   const handleAddItemToPortfolio = (coin: CoinData) => {
     const existing = portfolio.find(p => p.coinId === coin.id);
@@ -405,27 +318,6 @@ export default function App() {
   const handleUpdateAmountInPortfolio = (coinId: string, amount: number) => {
     const updated = portfolio.map(p => p.coinId === coinId ? { ...p, amount } : p);
     savePortfolio(updated);
-  };
-
-  // Compile real-time risk profile evaluation using Gemini
-  const handleAuditPortfolio = async () => {
-    if (portfolio.length === 0) return;
-    setAuditing(true);
-    setAuditFeedback(null);
-    try {
-      const res = await fetch("/api/crypto/portfolio-audit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ assets: portfolio })
-      });
-      if (!res.ok) throw new Error("Portfolio audit run error");
-      const feedback: AiPortfolioFeedback = await res.json();
-      setAuditFeedback(feedback);
-    } catch (e) {
-      console.error("Audit submission failed", e);
-    } finally {
-      setAuditing(false);
-    }
   };
 
   // Synchronize history database for all assets in user's portfolio active vault
@@ -1072,8 +964,6 @@ export default function App() {
                         fiatCurrency={fiatCurrency}
                         rateMyr={rateMyr}
                         rateCny={rateCny}
-                        aiInsight={aiInsight}
-                        loadingInsight={loadingInsight}
                       />
                     )}
 
@@ -1132,46 +1022,7 @@ export default function App() {
                       />
                     )}
 
-                    {widget.id === "portfolio-analyzer" && (
-                      <PortfolioAnalyzer
-                        coins={coins}
-                        portfolio={portfolio}
-                        onRemovePortfolioItem={handleRemoveFromPortfolio}
-                        onUpdatePortfolioItemAmount={handleUpdateAmountInPortfolio}
-                        onAuditPortfolio={handleAuditPortfolio}
-                        auditFeedback={auditFeedback}
-                        auditing={auditing}
-                        fiatCurrency={fiatCurrency}
-                        rateMyr={rateMyr}
-                        rateCny={rateCny}
-                        portfolioHistory={combinedPortfolioHistory}
-                        loadingPortfolioHistory={loadingPortfolioHistory}
-                      />
-                    )}
 
-                    {widget.id === "macro-insights" && (
-                      <AiInsights
-                        insight={aiInsight}
-                        loading={loadingInsight}
-                        onTriggerAnalysis={() => generateMarketInsightsReport(insightLanguage)}
-                        language={insightLanguage}
-                        onLanguageChange={setInsightLanguage}
-                      />
-                    )}
-
-                    {widget.id === "multi-horizon-forecast" && (
-                      <MultiHorizonForecast portfolio={portfolio} />
-                    )}
-
-                    {widget.id === "ai-chat" && (
-                      <AiChat
-                        coinName={activeSelectedCoin ? activeSelectedCoin.name : null}
-                        coinId={selectedCoinId}
-                        onSendMessage={handleChatSubmission}
-                        chatHistory={chatHistory}
-                        onClearHistory={() => setChatHistory([])}
-                      />
-                    )}
                   </div>
 
                 </div>
@@ -1200,7 +1051,7 @@ export default function App() {
 
       {/* Humble footnote */}
       <footer className="py-4 border-t border-zinc-900 bg-zinc-950 text-center text-[10px] text-zinc-600 font-mono tracking-wider shrink-0 mt-8">
-        CoinCap &amp; Gemini AI Systems Integration &middot; Data is indicative and strictly for research education purposes.
+        CoinCap Market Data &middot; Data is indicative and strictly for research education purposes.
       </footer>
 
       {/* Real-time 256-bit personalization drawer cabinet popup portal */}

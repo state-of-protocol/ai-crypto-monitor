@@ -1,6 +1,6 @@
 {
-  "name": "AI Crypto Monitor",
-  "description": "Real-time crypto monitoring dashboard with AI insights, portfolio analysis, and predictive trend warnings powered by DeepSeek.",
+  "name": "Crypto Monitor",
+  "description": "Real-time cryptocurrency monitoring dashboard powered by CoinCap API. No AI features or API keys required.",
   "requestFramePermissions": [],
   "majorCapabilities": []
 }
